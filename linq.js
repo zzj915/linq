@@ -1,4 +1,5 @@
-﻿/*--------------------------------------------------------------------------
+﻿/* eslint-disable */
+/*--------------------------------------------------------------------------
  * linq.js - LINQ for JavaScript
  * licensed under MIT License
  *------------------------------------------------------------------------*/
@@ -1097,6 +1098,56 @@ Enumerable.prototype.join = function (inner, outerKeySelector, innerKeySelector,
                         var innerElement = innerElements[innerCount++];
                         if (innerElement !== undefined) {
                             return this.yieldReturn(resultSelector(outerEnumerator.current(), innerElement));
+                        }
+
+                        innerElement = null;
+                        innerCount = 0;
+                    }
+
+                    if (outerEnumerator.moveNext()) {
+                        var key = outerKeySelector(outerEnumerator.current());
+                        innerElements = lookup.get(key).toArray();
+                    } else {
+                        return false;
+                    }
+                }
+            },
+            function () { Utils.dispose(outerEnumerator); });
+    });
+};
+
+// leftJoin by zzj
+// Overload:function (inner, outerKeySelector, innerKeySelector, resultSelector)
+// Overload:function (inner, outerKeySelector, innerKeySelector, resultSelector, compareSelector)
+Enumerable.prototype.leftJoin = function (inner, outerKeySelector, innerKeySelector, resultSelector, compareSelector) {
+    outerKeySelector = Utils.createLambda(outerKeySelector);
+    innerKeySelector = Utils.createLambda(innerKeySelector);
+    resultSelector = Utils.createLambda(resultSelector);
+    compareSelector = Utils.createLambda(compareSelector);
+    var source = this;
+
+    return new Enumerable(function () {
+        var outerEnumerator;
+        var lookup;
+        var innerElements = null;
+        var innerCount = 0;
+
+        return new IEnumerator(
+            function () {
+                outerEnumerator = source.getEnumerator();
+                lookup = Enumerable.from(inner).toLookup(innerKeySelector, Functions.Identity, compareSelector);
+            },
+            function () {
+                while (true) {
+                    if (innerElements != null) {
+                        var innerElement = innerElements[innerCount++];
+                        if (innerElement !== undefined) {
+                            return this.yieldReturn(resultSelector(outerEnumerator.current(), innerElement));
+                        }
+
+                        // 保留 outerEnumerator.current 
+                        if (innerCount === 1) {
+                            return this.yieldReturn(resultSelector(outerEnumerator.current(), {}));
                         }
 
                         innerElement = null;
