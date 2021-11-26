@@ -61,6 +61,23 @@ test("leftJoin", function ()
     deepEqual(actual, expected);
 });
 
+test("fullJoin", function ()
+{
+    var math = { yamada: 100, tanaka: 80, yoshida: 94, jimmy: 95 };
+    var english = { yamada: 73, yoshida: 26, tanaka: 99, dommy: 99 };
+    let actual = Enumerable.from(math)
+        .fullJoin(english, "outer=>outer.key", "inner=>inner.key",
+            "o,i=>{Name:o.key || i.key,Math:o.value,English:i.value}")
+        .toArray();
+        console.log(actual)
+    let expected = [{ Name: "yamada", Math: 100, English: 73 },
+                    { Name: "tanaka", Math: 80, English: 99 },
+                    { Name: "yoshida", Math: 94, English: 26},
+                    { Name: "jimmy", Math: 95, English: undefined},
+                    { Name: "dommy", Math: undefined, English: 99}];
+    deepEqual(actual, expected);
+});
+
 test("groupJoin", function ()
 {
     var array1 = [3, 3, 4, 5, 6];

@@ -1166,6 +1166,74 @@ Enumerable.prototype.leftJoin = function (inner, outerKeySelector, innerKeySelec
     });
 };
 
+// fullJoin by zzj
+// Overload:function (inner, outerKeySelector, innerKeySelector, resultSelector)
+// Overload:function (inner, outerKeySelector, innerKeySelector, resultSelector, compareSelector)
+Enumerable.prototype.fullJoin = function (inner, outerKeySelector, innerKeySelector, resultSelector, compareSelector) {
+    outerKeySelector = Utils.createLambda(outerKeySelector);
+    innerKeySelector = Utils.createLambda(innerKeySelector);
+    resultSelector = Utils.createLambda(resultSelector);
+    compareSelector = Utils.createLambda(compareSelector);
+    var source = this;
+
+    return new Enumerable(function () {
+        var outerEnumerator;
+        var innerEnumerator;
+        var lookup;
+        var innerElements = null;
+        var innerCount = 0;
+        var keys;
+
+        return new IEnumerator(
+            function () {
+                outerEnumerator = source.getEnumerator();
+                lookup = Enumerable.from(inner).toLookup(innerKeySelector, Functions.Identity, compareSelector);
+                keys = new Dictionary(compareSelector);
+            },
+            function () {
+                if (innerEnumerator === undefined) {
+                    while (true) {
+                        if (innerElements != null) {
+                            var innerElement = innerElements[innerCount++];
+                            if (innerElement !== undefined) {
+                                return this.yieldReturn(resultSelector(outerEnumerator.current(), innerElement));
+                            }
+
+                            // 保留 outerEnumerator.current 
+                            if (innerCount === 1) {
+                                return this.yieldReturn(resultSelector(outerEnumerator.current(), {}));
+                            }
+
+                            innerElement = null;
+                            innerCount = 0;
+                        }
+
+                        if (outerEnumerator.moveNext()) {
+                            var key = outerKeySelector(outerEnumerator.current());
+                            innerElements = lookup.get(key).toArray();
+                            if (!keys.contains(key)) {
+                                keys.add(key);
+                            }
+                        } else {
+                            innerEnumerator = Enumerable.from(inner).getEnumerator();
+                            break;
+                            // return false;
+                        }
+                    }
+                }
+                while (innerEnumerator.moveNext()) {
+                    var key = innerKeySelector(innerEnumerator.current());
+                    if (!keys.contains(key)) {
+                        keys.add(key);
+                        return this.yieldReturn(resultSelector({}, innerEnumerator.current()));
+                    }
+                }
+                return false;
+            },
+            function () { Utils.dispose(outerEnumerator); });
+    });
+};
+
 // Overload:function (inner, outerKeySelector, innerKeySelector, resultSelector)
 // Overload:function (inner, outerKeySelector, innerKeySelector, resultSelector, compareSelector)
 Enumerable.prototype.groupJoin = function (inner, outerKeySelector, innerKeySelector, resultSelector, compareSelector) {
