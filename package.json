@@ -1,5 +1,5 @@
 {
-  "name": "linq",
+  "name": "@zoomlgd/linq",
   "author": "Mihai Ciuraru <mihaixc@gmail.com>",
   "description": "linq.js - LINQ for JavaScript",
   "type": "module",
@@ -26,11 +26,8 @@
     "node": "*"
   },
   "files": [
-    "LICENSE",
     "linq.d.ts",
-    "linq.js",
-    "package.json",
-    "README.md"
+    "linq.js"
   ],
   "main": "./linq.js",
   "exports": "./linq.js",
