@@ -1147,7 +1147,7 @@ Enumerable.prototype.leftJoin = function (inner, outerKeySelector, innerKeySelec
 
                         // 保留 outerEnumerator.current 
                         if (innerCount === 1) {
-                            return this.yieldReturn(resultSelector(outerEnumerator.current(), {}));
+                            return this.yieldReturn(resultSelector(outerEnumerator.current(), undefined));
                         }
 
                         innerElement = null;
@@ -1201,7 +1201,7 @@ Enumerable.prototype.fullJoin = function (inner, outerKeySelector, innerKeySelec
 
                             // 保留 outerEnumerator.current 
                             if (innerCount === 1) {
-                                return this.yieldReturn(resultSelector(outerEnumerator.current(), {}));
+                                return this.yieldReturn(resultSelector(outerEnumerator.current(), undefined));
                             }
 
                             innerElement = null;
@@ -1225,7 +1225,7 @@ Enumerable.prototype.fullJoin = function (inner, outerKeySelector, innerKeySelec
                     var key = innerKeySelector(innerEnumerator.current());
                     if (!keys.contains(key)) {
                         keys.add(key);
-                        return this.yieldReturn(resultSelector({}, innerEnumerator.current()));
+                        return this.yieldReturn(resultSelector(undefined, innerEnumerator.current()));
                     }
                 }
                 return false;
